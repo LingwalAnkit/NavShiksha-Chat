@@ -26,44 +26,33 @@ export const authOptions: AuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          throw new Error('Invalid Credentials')
+          throw new Error("Invalid credentials");
         }
-        try {
-          const user = await prisma.user.findUnique({
-            where: {
-              email: credentials.email,
-            },
-          });
 
-          if (!user || !user?.hashedPassword) {
-            throw new Error('Invalid Credentials')
-          }
+        const user = await prisma.user.findUnique({
+          where: {
+            email: credentials.email,
+          },
+        });
 
-          const isCorrectPassword = await bcrypt.compare(
-            credentials.password, 
-            user.hashedPassword
-          );
-
-          if (!isCorrectPassword) {
-            throw new Error('Invalid Credentials')
-          }
-
-          return user;
-        } catch (error) {
-          console.error("Authentication error:", error);
-          return null;
+        if (!user || !user?.hashedPassword) {
+          throw new Error("Invalid credentials");
         }
+
+        const isCorrectPassword = await bcrypt.compare(credentials.password, user.hashedPassword);
+
+        if (!isCorrectPassword) {
+          throw new Error("Invalid credentials");
+        }
+
+        return user;
       },
     }),
   ],
-  pages: {
-    signIn: '/',
-  },
+  debug: process.env.NODE_ENV === "development",
   session: {
     strategy: "jwt",
-    maxAge: 24 * 60 * 60, // 24 hours
   },
-  debug: process.env.NODE_ENV === "development",
   secret: process.env.NEXTAUTH_SECRET,
 };
 
